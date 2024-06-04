@@ -1,0 +1,9 @@
+{
+    "java.project.sourcePaths": ["src"],
+    "java.project.outputPath": "bin",
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "c:\\Users\\TamalitoDePuerco\\Downloads\\commons-lang3-3.14.0.jar",
+        "c:\\Users\\aleja\\OneDrive\\Escritorio\\automatas salvacion\\commons-lang3-3.14.0.jar"
+    ]
+}

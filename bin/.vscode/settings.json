@@ -1,0 +1,6 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "c:\\Users\\aleja\\Downloads\\commons-lang3-3.14.0.jar"
+    ]
+}

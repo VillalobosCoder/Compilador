@@ -1,0 +1,79 @@
+Compiled from Demo1.java
+public synchronized class Demo1 extends java.lang.Object 
+    /* ACC_SUPER bit set */
+{
+    public static void main(java.lang.String[]);
+	/* Stack=2, Locals=1, Args_size=1 */
+    public static void stackManip();
+	/* Stack=5, Locals=6, Args_size=0 */
+    public static int add(int, int, int);
+	/* Stack=2, Locals=4, Args_size=3 */
+    public Demo1();
+	/* Stack=1, Locals=1, Args_size=1 */
+}
+
+Method void main(java.lang.String[])
+   0 getstatic #9 <Field java.io.PrintStream out>
+   3 ldc #2 <String "Hello World!">
+   5 invokevirtual #10 <Method void println(java.lang.String)>
+   8 return
+
+Method void stackManip()
+   0 iconst_2
+   1 istore_0
+   2 bipush 6
+   4 istore_1
+   5 sipush 200
+   8 istore_2
+   9 ldc #1 <Integer 2000000>
+  11 istore_3
+  12 iload_0
+  13 iload_3
+  14 iadd
+  15 istore_3
+  16 iconst_3
+  17 iload_0
+  18 iload_1
+  19 idiv
+  20 iconst_2
+  21 iload_3
+  22 iload_1
+  23 iadd
+  24 idiv
+  25 isub
+  26 imul
+  27 istore 4
+  29 iinc 0 1
+  32 iload_1
+  33 iconst_3
+  34 ishl
+  35 istore_1
+  36 iconst_2
+  37 iconst_5
+  38 dup
+  39 istore_0
+  40 imul
+  41 istore 5
+  43 iload_0
+  44 iload_1
+  45 iconst_m1
+  46 invokestatic #8 <Method int add(int, int, int)>
+  49 istore 4
+  51 return
+
+Method int add(int, int, int)
+   0 iload_0
+   1 iload_1
+   2 iadd
+   3 iload_2
+   4 iadd
+   5 istore_3
+   6 iload_3
+   7 ireturn
+
+Method Demo1()
+   0 aload_0
+   1 invokespecial #7 <Method java.lang.Object()>
+   4 return
+
+

@@ -1,0 +1,871 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0056)http://pages.csam.montclair.edu/~bredlau/jasmin/JVM.html -->
+<HTML><HEAD><TITLE>JVM Notes</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=iso-8859-1">
+<META content="WP Internet Publisher 1.0 Beta B" name=CreatedBy>
+<META content="MSHTML 6.00.2600.0" name=GENERATOR>
+<META content="Carl Bredlau" name=Author>
+<META content="A simple tutorial on the JVM" name=Description>
+<META content="Java Virtual Machine; tutorial;assembler;jasmin" 
+name=KeyWords></HEAD>
+<BODY>
+<CENTER>
+<H1><FONT size=+2>The Machine Language of the <B>JVM</B></FONT></H1></CENTER>
+<HR width="100%" SIZE=5>
+
+<P><FONT color=#cc6600><FONT size=+1>I have moved on.&nbsp; But I do have notes, 
+but not in tutorial form, on objects, exceptions, etc.&nbsp; Take a look at <A 
+href="http://www.csam.montclair.edu/~bredlau/cmpt280/AlacaSignOnS03.html">ALACA 
+Notes</A> Parts 1 - 4.&nbsp; (August, 2004)</FONT></FONT> </P>
+<P>Welcome to a small tutorial on the machine language of the Java Virtual 
+Machine (JVM). </P>
+<P>It's not deep.&nbsp; It's not complicated.&nbsp; It's what you would want to 
+know if you knew what you wanted. </P>
+<P>Its purpose is to show how the the machine instructions support the Java 
+Language. </P>
+<P>It's important to do the exercises, since concepts are be exercised and 
+expanded there. <BR>&nbsp; <BR>&nbsp; </P>
+<P>(Last revised September, 2000). </P>
+<HR width="100%" SIZE=5>
+
+<P><B><I><FONT size=+1>Contents</FONT></I></B> </P>
+<P>&nbsp;&nbsp;&nbsp; <A 
+href="http://pages.csam.montclair.edu/~bredlau/jasmin/JVM.html#look">How to look 
+at assembly code</A> <BR>&nbsp;&nbsp;&nbsp; <A 
+href="http://pages.csam.montclair.edu/~bredlau/jasmin/JVM.html#Simple%20machine">Simple 
+machine architecture</A> (at first glance). <BR>&nbsp;&nbsp;&nbsp; <A 
+href="http://pages.csam.montclair.edu/~bredlau/jasmin/JVM.html#Arithmetic">Arithmetic 
+expressions</A> <BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <A 
+href="http://pages.csam.montclair.edu/~bredlau/jasmin/JVM.html#Putting">Putting 
+integer constants onto the stack</A> 
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <A 
+href="http://pages.csam.montclair.edu/~bredlau/jasmin/JVM.html#Calculations">Calculations</A> 
+<BR>&nbsp;&nbsp;&nbsp; <A 
+href="http://pages.csam.montclair.edu/~bredlau/jasmin/JVM.html#Calling">Calling 
+methods and passing parameters</A> <BR>&nbsp;&nbsp;&nbsp; <A 
+href="http://pages.csam.montclair.edu/~bredlau/jasmin/JVM.html#Jasmin">Jasmin 
+programs</A> <BR>&nbsp;&nbsp;&nbsp; <A 
+href="http://pages.csam.montclair.edu/~bredlau/jasmin/JVM.html#Flow%20of%20Control">Flow 
+of Control</A> <BR>&nbsp;&nbsp;&nbsp; <A 
+href="http://pages.csam.montclair.edu/~bredlau/jasmin/JVM.html#Arrays">Arrays</A> 
+<BR>&nbsp;&nbsp;&nbsp; <A 
+href="http://www.csam.montclair.edu/~bredlau/jasmin/JavaExercises.html">Exercises</A> 
+</P>
+<P><B><I><FONT size=+1>Resources</FONT></I></B> <BR>&nbsp;&nbsp;&nbsp;&nbsp; <A 
+href="http://www.cat.nyu.edu/~meyer/jasmin/">Jasmin</A> <BR>&nbsp;&nbsp;&nbsp; 
+<A href="http://www.cat.nyu.edu/~meyer/jvmref/">JVM instruction reference</A> 
+<BR></P>
+<HR width="100%" SIZE=5>
+
+<P><A name=look></A><B><I><FONT size=+1>How to look at assembly 
+code</FONT></I></B> </P>
+<OL>
+  <LI>If you know how to write a Java program, then you are halfway there.&nbsp; 
+  Compile the program into a <TT>class</TT> file.&nbsp; For example, I compiled 
+  <A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/Demo1.java">Demo1.java</A> 
+  on Pegasus by <TT>% javac Demo1.java. </TT>If all goes well, an object file <A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/Demo1.class.txt">Demo1.class</A> 
+  is created.&nbsp; I can then execute this program by just naming the class 
+  file&nbsp; <TT>% java Demo1.</TT> <BR>&nbsp; 
+  <LI>For the rest of you, don't worry.&nbsp; If you can read C++ and are 
+  familiar with the concepts of classes and objects of a class, you can read a 
+  lot of Java, or at least enough Java for this tutorial.&nbsp; While looking at 
+  <A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/Demo1.java">Demo1.java</A> 
+  , do note: <BR>&nbsp; 
+  <UL>
+    <LI>Java programs reside in a class.&nbsp; The name of the class is the 
+    prefix of the filename; the suffix is (almost) always <TT>.java</TT>. 
+    <BR>&nbsp; 
+    <LI>A simple class will usually contain a <TT>main</TT> function (also 
+    called a <I>method</I>).&nbsp; This is the function that the JVM will run 
+    first. <TT>Static</TT> means that the method belongs to the class rather 
+    than to an object of the class.&nbsp; It's the same as C++'s <TT>main()</TT> 
+    method.&nbsp; Don't worry about <TT>String[] args</TT>; that's for passing 
+    in parameters from the command line. <BR>&nbsp; 
+    <LI>This program consists of class methods that don't do much other than 
+    demonstrate some feature of the machine code.&nbsp; The only object 
+    mentioned is <TT>System.out</TT> which is used for writing to the console. 
+    <BR>&nbsp; 
+    <LI>A Java program is compiled into an object file containing the machine 
+    instructions, or <I>bytecodes,</I>&nbsp; along other data.&nbsp; The file 
+    name is the name of the class (not necessarily the name of the source file) 
+    and the suffix <TT>.class.</TT> <BR>&nbsp; 
+    <LI>To compile a Java program on Pegasus, you need to <A 
+    href="http://www.csam.montclair.edu/~bredlau/jasmin/JavaSetup.html">set 
+    up</A> an environment. <BR>&nbsp; </LI></UL>
+  <LI>&nbsp;Don't try too hard in viewing the class file; it's in hexadecimal 
+  and has a pretty complicated format.&nbsp; Instead, we'll use Java's 
+  disassembler <TT>javap</TT>.&nbsp; In this example, I viewed the class file by 
+  <TT><A href="http://www.csam.montclair.edu/~bredlau/jasmin/Demo1.txt">% javap 
+  -c -verbose Demo1</A></TT>.&nbsp; The <TT>-c</TT> option will show the 
+  bytecodes for then instructions and <TT>-verbose</TT> option shows more 
+  information about the methods.&nbsp; The listing will show assembler 
+  instructions for the bytecodes for the methods. <BR>&nbsp; 
+  <LI>Look at the&nbsp; <A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/JavaExercises.html#look">exercises</A>. 
+  </LI></OL>
+<HR width="100%" SIZE=5>
+
+<P><A name="Simple machine"></A><B><I><FONT size=+1>Simple machine 
+architecture</FONT></I></B> </P>
+<OL>
+  <LI>For each invoked method, the JVM creates an isolated environment in memory 
+  called a <I>stack frame</I>.&nbsp; It consists of <BR>&nbsp; 
+  <OL>
+    <LI>Local variables.&nbsp; They are numbered 0, 1, 2, ... .&nbsp; (For 
+    methods of an object, local variable 0 contains a reference to the object 
+    itself (<TT>this</TT>).&nbsp; Right now we are implementing class methods, 
+    so we don't have to worry about this.) Local variables usually contain an 
+    integer or a reference to an object.&nbsp; We access a local variable by its 
+    number. <BR>&nbsp; 
+    <LI>A stack for manipulating data.&nbsp; All (well, almost all) arithmetic 
+    is performed on the stack. When the method begins, the stack is empty.&nbsp; 
+    When the method ends, the stack better be empty.&nbsp; For most statements, 
+    the compiler will generate code that start and end with an empty 
+    stack.&nbsp; Unlike most machine architectures, there are <B>no</B> 
+    registers to run out of. </LI></OL>Java compilation creates a <B>lot</B> of 
+  constants such as large numbers, strings, and names of classes and methods. 
+  Constants are stored in a <B>constant pool</B> that is accessible to all the 
+  methods of the class. 
+  <P>Constants are stored in an array-like structure;&nbsp; the JVM accesses a 
+  constant by naming the index (starting from 1) for the constant.&nbsp; It's 
+  direct addressing for constants! </P>
+  <P>There are many types of constants; and each one has its own data 
+  structure.&nbsp; It can be quite complicated.&nbsp; For example, a constant 
+  for a method contains fields that contain indices to other constants.&nbsp; 
+  One of them names the class of the method; the other names the method and the 
+  type of parameters. </P>
+  <P>The good news is that the compiler (and Java assembler) knows how to create 
+  the constant pool.&nbsp; All you have to know is that constants exist in a 
+  pool and that they are accessible by naming the index of the constant. 
+  <BR>&nbsp; </P>
+  <LI>Machine instructions can refer to (1) immediate data (part of the 
+  instruction) (2) local variables, (3) the stack, (4)&nbsp; the constant 
+  pool,&nbsp; (5) a branch address. <BR>Most instructions consist of a one byte 
+  operation code (<I>opcode</I>) followed by a byte containing an operand.&nbsp; 
+  The operand can be an integer constant,&nbsp; an index to local storage, or an 
+  index to the constant pool.&nbsp; Most of the time this is just fine; most 
+  constants are small and methods usually need just a few local variables.&nbsp; 
+  In the rare case that a larger constant is needed or that there are many, many 
+  local variables or many, many constants in the constant pool, the instruction 
+  will contain a two byte index or constant. 
+  <P>Why just use one byte for the operand when two bytes works just as 
+  well?&nbsp; To keep the program small, an important consideration since most 
+  programs are transmitted over the Internet. </P>
+  <P>To make instructions even smaller some instructions imply a constant.&nbsp; 
+  You'll see this below. <BR>&nbsp; </P>
+  <LI>&nbsp;<A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/JavaExercises.html#Simple%20Machine">Exercises</A> 
+  </LI></OL>
+<HR width="100%" SIZE=5>
+<BR><A name=Arithmetic></A><B><I><FONT size=+1>Arithmetic 
+expressions</FONT></I></B> 
+<P><A name=Putting></A><B><FONT size=+1>Putting Integer Constants onto the 
+stack</FONT></B> </P>
+<OL>
+  <LI>Arithmetic is performed on the stack.&nbsp; Data for the calculations can 
+  come from (1) the instruction (immediate addressing or even implied by the 
+  instruction), (2) local variables (direct addressing), and (3) the constant 
+  pool (direct addressing).&nbsp; The JVM has many, many instructions for 
+  loading data onto the stack.&nbsp; It's best to see this in context. 
+  <BR>&nbsp; 
+  <LI>There are many types of&nbsp; arithmetic data, such as integers, floats, 
+  doubles, and longs. To keep this tutorial short, we'll just consider 
+  integers.&nbsp; Integers are 32 bits and are stored stored big-endian in 
+  memory. <BR>Let's start with assigning constants to local variables.&nbsp; 
+  Look at the method <TT>stackManip()</TT> in <A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/Demo1.java">Demo1.java</A> 
+  and, at the same time, the&nbsp; <TT><A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/Demo1.txt">assembler 
+  code</A></TT>.&nbsp;&nbsp; The first statement is <TT>x = 2;&nbsp; x</TT> is 
+  assigned as local variable 0. <BR>&nbsp; 
+  <LI>The instruction <TT>iconst_2</TT> at location 0 pushes a constant 2 onto 
+  the stack. <BR>How long is the instruction?&nbsp; (This is a tutorial, so try 
+  to answer the question <B>now</B>.) <BR>The constant is implied by the 
+  instruction! <BR>There are separate machine instructions for pushing 0 through 
+  5 and -1 onto the stack. 
+  <OL> </OL>
+  <LI>Visit the <A 
+  href="http://www.cat.nyu.edu/~meyer/jvmref/ref--21.html">Jasmine 
+  site&nbsp;</A> to see description of&nbsp; the&nbsp; <TT>iconst_&lt;n&gt; 
+  </TT>machine instructions. 
+  <OL> </OL>
+  <LI>We save the data at the top of the stack (pop the stack) into local 
+  variable 0 by the instruction <TT>istore_0</TT> at location 1. <BR>How long is 
+  the instruction? <BR>What are the other <TT>istore_&lt;n&gt;</TT> 
+  instructions? 
+  <OL> </OL>
+  <LI>Let's see how&nbsp; <TT>y = 6;</TT> is implemented: 
+  <OL><TT>bipush 6</TT> </OL><TT>&nbsp;&nbsp;&nbsp; istore_1</TT> <BR>How long 
+  is the instruction? <BR>The second byte contains the constant 6.&nbsp; Find 
+  the description of this instruction.&nbsp; What are the largest and smallest 
+  integers? <BR>Do you see how <TT>y</TT> is the second local constant? 
+  <BR>&nbsp; 
+  <LI>Onto bigger constants:&nbsp; To implement&nbsp; <TT>z = 200;</TT> we now 
+  need two push a 2 byte constant.&nbsp; The instruction <TT>sipush 200</TT> 
+  does just that -- s(hort) i(nteger) push. <BR>How long is the instruction? 
+  <BR>How big can the constants be? 
+  <OL start=5> </OL>
+  <LI>Even bigger constants:&nbsp; To implement <TT>u = 2000000; </TT>the 
+  designers could have used a 5 byte instruction.&nbsp; They thought 
+  better.&nbsp; Instead, put large constants into the constant pool rather than 
+  within the instruction.&nbsp; Thus we see: <TT>ldc #1 &lt;Integer 
+  2000000&gt;</TT>&nbsp; which copies (loads the constant) 2000000 found at the 
+  first index of the constant pool onto the stack. <BR>How long is the 
+  instruction? <BR>What other constants can be loaded from the constant pool? 
+  <BR>&nbsp; 
+  <LI>&nbsp;<A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/JavaExercises.html#Putting%20Integer%20Constants%20onto%20the%20stack">Exercises</A> 
+  </LI></OL><A name=Calculations></A><B><FONT size=+1>Calculations</FONT></B> 
+<OL>
+  <LI>The strategy is to (1) push the operands on the stack, (2) perform the 
+  operation on the two operands -- the operation removes the operands from the 
+  stack and puts the result on the top of the stack, (3) and then finally pop 
+  the stack with the answer.&nbsp; Let's start with&nbsp;&nbsp; <TT>u = x + 
+  u;</TT>&nbsp; The compiler generated <BR><TT>&nbsp; 12 iload_0</TT> 
+  <BR><TT>&nbsp; 13 iload_3</TT> <BR><TT>&nbsp; 14 iadd</TT> <BR><TT>&nbsp; 15 
+  istore_3</TT> <BR>First (1)&nbsp; x is pushed, then u.&nbsp; (2) Now we 
+  perform the addition.&nbsp; What is on the top of the stack?&nbsp; x + 
+  u.&nbsp; How long is the instruction?&nbsp; (3) We now save it. <BR>&nbsp; 
+  <LI>What arithmetic operations can you do on the integers?&nbsp; The usual 
+  ones: <TT>iadd isub ineg imul idiv irem </TT>(taking the remainder) <BR>&nbsp; 
+
+  <LI>You should be able to read a Java expression from left to right and 
+  perform the calculation on the stack.&nbsp; For <TT>v = 3*(x/y - 2/(u+y))</TT> 
+  we get the compiled code&nbsp; (I adding comments starting with the 
+  semicolon): <BR>&nbsp;&nbsp;&nbsp; <TT>16 iconst_3</TT> <BR><TT>&nbsp; 17 
+  iload_0&nbsp;&nbsp; ; x</TT> <BR><TT>&nbsp; 18 iload_1&nbsp;&nbsp; ; y</TT> 
+  <BR><TT>&nbsp; 19 idiv</TT> <BR><TT>&nbsp; 20 iconst_2</TT> <BR><TT>&nbsp; 21 
+  iload_3&nbsp;&nbsp; ;u</TT> <BR><TT>&nbsp; 22 iload_1&nbsp;&nbsp; ;y</TT> 
+  <BR><TT>&nbsp; 23 iadd</TT> <BR><TT>&nbsp; 24 idiv</TT> <BR><TT>&nbsp; 25 
+  isub</TT> <BR><TT>&nbsp; 26 imul</TT> <BR><TT>&nbsp; 27 istore 4&nbsp; ; 
+  v</TT> <BR>What gets pushed first? <BR>We don't have the second operand for 
+  the multiplication.&nbsp; So let's keep pushing.&nbsp; What two variables get 
+  pushed next? <BR>We can now divide.&nbsp; How long is the instruction? What is 
+  now on the stack after the division?&nbsp; top -&gt;&nbsp; x/y, 3. <BR>We 
+  still can't multiply.&nbsp; And we can't yet subtract.&nbsp; What is now 
+  pushed? <BR>We still can't multiply, subtract, or divide.&nbsp; What variables 
+  are now pushed?&nbsp; What does the stack now look like? <BR>We now can 
+  add.&nbsp; What does the stack now look like? <BR>We now can divide. What does 
+  the stack now look like? <BR>We now can subtract. What does the stack now look 
+  like? <BR>We can finally perform the multiplication.&nbsp; The stack just 
+  contains the value of the expression. <BR>We now can pop the stack. How long 
+  is the <TT>istore</TT> instruction?&nbsp; What does 4 represent?&nbsp; How 
+  many variables can we save into using <TT>istore</TT>? <BR>&nbsp; 
+  <LI>For every rule there is an exception.&nbsp; How would you code 
+  <TT>x++;</TT> using a stack? How many instructions does it take?&nbsp; How 
+  many bytes are used? <BR>Since this is a common operation, the JVM designers 
+  created&nbsp; <TT>iinc 0 1</TT>.&nbsp; How long is the instruction?&nbsp; What 
+  do the 0 and 1 signify?&nbsp; What is the range of local variables?&nbsp; What 
+  is the range of constants (since this instruction can be used for 
+  <TT>x--</TT>)? <BR>&nbsp; 
+  <LI>The JVM also supports the logical instructions <TT>ishl ishr </TT>(the 
+  arithmetic kind)<TT> iushr </TT>(the logical kind; Java uses the operator 
+  <TT>&gt;&gt;&gt; </TT>for this) <TT>iand ior ixor</TT>.&nbsp; Do you see how 
+  <TT>y &lt;&lt;=&nbsp; 3; </TT>is compiled? <BR>&nbsp; 
+  <LI><B>Verification</B>.&nbsp; The examples you have seen have been generated 
+  by the Java compiler; we trust that its code is correct and will run on any 
+  JVM.&nbsp; However, when the program is loaded, <B>no</B> such trust is 
+  assumed.&nbsp; The program is examined instruction by instruction 
+  <B>before</B> execution to make sure that the code will be able to 
+  execute.&nbsp; For example,&nbsp; the <TT>iadd</TT> instruction must have two 
+  integers on the stack.&nbsp; A program that has only one integer on the stack 
+  will get a message such as <BR><TT>Exception in thread "main" 
+  java.lang.VerifyError: (class: Boom, method: dumb sig</TT> <BR><TT>nature: 
+  ()V) Unable to pop operand off an empty stack.</TT>&nbsp; The program is then 
+  terminated. 
+  <P>Be aware that all code will be examined by the Java verifier.&nbsp; This 
+  will help you when you write your own assembly code since the verifier is 
+  checking the structure of your program.&nbsp; It's not as powerful as the 
+  compiler, but it's much better than watching your program just blow up. 
+  <BR>&nbsp; </P>
+  <LI><A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/JavaExercises.html#Calculations">Exercises</A>. 
+  <BR>&nbsp; </LI></OL>
+<HR width="100%" SIZE=7>
+
+<P><A name=Calling></A><B><I><FONT size=+1>Calling methods and passing 
+parameters</FONT></I></B> </P>
+<OL>
+  <LI>To simplify things, we'll just call static methods (they don't belong to 
+  any object) with integer parameters.&nbsp; For the expression <TT>v = 
+  add(x,y,-1); </TT>in <A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/Demo1.java">Demo1.java</A>, 
+  we see a call to the method <TT>add</TT> which requires 3 parameters.&nbsp; As 
+  in C,&nbsp; Java passes parameters by value.&nbsp; When <TT>add</TT> begins 
+  execution, it will be able to access 3 integers; it has no idea where they 
+  came from. <TT>add </TT>will do its calculation and return an integer which 
+  will be saved in <TT>v.</TT> <BR>&nbsp; 
+  <LI>So how is it done? <TT>stackManip</TT> pushes the values of the parameters 
+  onto the stack.&nbsp; Thus we have the <TT><A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/Demo1.txt">assembler 
+  code</A></TT> <BR><TT>&nbsp; 43 iload_0&nbsp;&nbsp;&nbsp; ; push x</TT> 
+  <BR><TT>&nbsp; 44 iload_1&nbsp;&nbsp;&nbsp; ; push y</TT> <BR><TT>&nbsp; 45 
+  iconst_m1&nbsp; ; push -1</TT> <BR>Note that the last parameter is on the top 
+  of the stack and the first parameter is the furthest down. 
+  <OL> </OL>
+  <LI>We need a call instruction: <BR><TT>&nbsp; 46 invokestatic #8 &lt;Method 
+  int add(int, int, int)&gt;</TT> 
+  <OL> </OL>How long is this instruction? The #8 tells us to go to the constant 
+  pool.&nbsp; What do we find there?&nbsp; The name of the method, the type of 
+  parameters and the type of the return value. (Note that when the program is 
+  loaded, the JVM verifier will then check to make sure that 3 integers really 
+  are on the stack.) The JVM now knows what code to execute and where to find 
+  the parameters.&nbsp; The JVM creates an environment for <TT>add</TT>; it 
+  removes the three integers on the top of the stack and places them in the 
+  first 3 local variables of <TT>add</TT>.&nbsp; From the caller's point of 
+  view, the parameters have been popped. The JVM now executes the function 
+  <TT>add</TT>&nbsp; which will return a&nbsp; integer (this is discussed 
+  below).&nbsp; Upon completion control is passed back to the caller with the 
+  return value on the caller's stack.&nbsp; <TT>stackManip</TT> pops that value 
+  into <TT>v:</TT> <BR><TT>&nbsp; 49 istore 4</TT> 
+  <OL> </OL>There are many call instructions; the one that we use here is for 
+  static methods; there are other instructions for calling methods of an object. 
+  <BR>&nbsp; 
+  <LI>Let's see how the the method <TT>public static int add(int first, int 
+  second, int third)</TT>is implemented.&nbsp;&nbsp;&nbsp; The first three local 
+  variables 0 through 2 will contain the value of the parameters when <TT>add 
+  </TT>begins execution.&nbsp; For the code above, local variable 0 will contain 
+  x, 1 will contain y, and 2 will contain -1.&nbsp; <TT>add</TT> may use more 
+  local storage for intermediate results; we see that <TT>sum</TT> is local 
+  variable 3. 
+  <OL> </OL>At this point you can do the calculation: <BR><TT>&nbsp;&nbsp; 0 
+  iload_0&nbsp;&nbsp; ; first</TT> <BR><TT>&nbsp;&nbsp; 1 iload_1&nbsp;&nbsp; ; 
+  second</TT> <BR><TT>&nbsp;&nbsp; 2 iadd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; stack 
+  now has first + second</TT> <BR><TT>&nbsp;&nbsp; 3 iload_2&nbsp;&nbsp; ; 
+  third</TT> <BR><TT>&nbsp;&nbsp; 4 iadd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; stack 
+  has first + second + third</TT> <BR><TT>&nbsp;&nbsp; 5 istore_3&nbsp; ; sum = 
+  first + second + third (stack is empty)</TT> 
+  <P>To return a value we must put it on the stack (this is <TT>add</TT>'s 
+  stack;&nbsp; <TT>add </TT>knows nothing about the caller).&nbsp; After it does 
+  this, it issues the return integer instruction.&nbsp; So we have 
+  <BR><TT>&nbsp;&nbsp; 6 iload_3&nbsp; ; sum</TT> <BR><TT>&nbsp;&nbsp; 7 
+  ireturn</TT> </P>
+  <P>The method is complete;&nbsp; the JVM takes the integer value on 
+  <TT>add</TT>'s stack and copy's it over to the caller's stack.&nbsp; 
+  <TT>add</TT>'s environment can now be recycled. <BR>&nbsp; </P>
+  <LI>Note that <TT>stackManip()</TT> has no parameters so there is no local 
+  storage for that.&nbsp; Since it does not return a value, it used the 
+  instruction <TT>return</TT>.&nbsp; How many return instructions are there and 
+  why? <BR>&nbsp; 
+  <LI>At the beginning of <TT><A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/Demo1.txt">assembler 
+  code</A></TT> we see that the class file has a summary of the methods: 
+  <BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <TT>public static void 
+  stackManip();</TT> <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /* 
+  Stack=5, Locals=6, Args_size=0 */</TT> <BR><TT>&nbsp;&nbsp;&nbsp; public 
+  static int add(int, int, int);</TT> 
+  <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /* Stack=2, Locals=4, 
+  Args_size=3 */</TT> 
+  <P>We and the JVM see the method names, parameters, and return type; but we 
+  also see how big the stack can get and how many local variables there 
+  are.&nbsp; This is for verification and run time checking;&nbsp; if an 
+  instruction pushes too much onto the stack or tries to access a local variable 
+  beyond the number stated, the program will complain! <BR>&nbsp; </P>
+  <LI>You'll also see code that looks like <BR><TT>Method Demo1()</TT> 
+  <BR><TT>&nbsp;&nbsp; 0 aload_0</TT> <BR><TT>&nbsp;&nbsp; 1 invokespecial #7 
+  &lt;Method java.lang.Object()&gt;</TT> <BR><TT>&nbsp;&nbsp; 4 return</TT> 
+  <BR>This code is used for initializing an object.&nbsp; Let's worry about what 
+  it means later when we discuss objects. <BR>&nbsp; 
+  <LI><B>Exercises</B> -- to be done </LI></OL>
+<HR width="100%" SIZE=3>
+
+<P><A name=Jasmin></A><B><I><FONT size=+1>Jasmin programs</FONT></I></B> 
+<BR>&nbsp; </P>
+<OL>
+  <LI>By now you have been looking at what the compiler does to your code.&nbsp; 
+  Let's take a small break and show you how you can write your own 
+  bytecodes.&nbsp; This will show you how smart and stupid the compiler 
+  is.&nbsp; It will also show you how you&nbsp; have to worry about details. 
+  <BR>&nbsp; 
+  <LI>We'll use the Jasmin assembler.&nbsp; The format of&nbsp; jasmin source 
+  code is similar to Java, with some additions so that there is enough 
+  information for the creation of the class file.&nbsp; Make sure you have first 
+  <A href="http://www.csam.montclair.edu/~bredlau/jasmin/JasminSetup.html">set 
+  up</A> the environment. <BR>&nbsp; 
+  <LI>Look at&nbsp; <A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/SomeFunctions.j">SomeFunctions.j</A> 
+  which defines the class file SomeFunctions.&nbsp; This class contains static 
+  methods such as <TT>int distSq(int x, int y)</TT>,<TT> int distSq(int x, int 
+  y, int z)</TT>,<TT> int dist(int x, int y)</TT>, <TT>int millionX(int x).</TT> 
+
+  <OL>
+    <LI>The semicolon <TT>;</TT> begins a comment and is similar to <TT>//</TT> 
+    in Java. 
+    <LI>We declare the class by <BR><TT>.class public SomeFunctions</TT> 
+    <BR><TT>.super java/lang/Object</TT> <BR>This is the same as Java's 
+    <TT>public class SomeFunctions extends Object</TT>.&nbsp;&nbsp; Note the 
+    path to the class <TT>Object</TT>. 
+    <P>At this point we don't have to worry about class and object attributes. 
+    <BR>&nbsp; </P>
+    <LI>When a object is created, it is initialized.&nbsp; If the class contains 
+    no initiators, an implicit one is defined which contains a&nbsp; call to 
+    <TT>super()</TT>.&nbsp;&nbsp; This is echoed by the code <BR><TT>.method 
+    public &lt;init&gt;()V</TT> <BR><TT>&nbsp;&nbsp; .limit stack 1</TT> 
+    <BR><TT>&nbsp;&nbsp; aload_0</TT> <BR><TT>&nbsp;&nbsp; invokespecial 
+    java/lang/Object/&lt;init&gt;()V</TT> <BR><TT>&nbsp;&nbsp; return</TT> 
+    <BR><TT>.end method</TT> <BR>Let's defer&nbsp; the details until I explain 
+    objects.&nbsp; (We really don't need this, since we don't create any 
+    objects.&nbsp; But it doesn't hurt to copy it in.&nbsp; So we do.) 
+    <BR>&nbsp; 
+    <LI>We can now start to write our methods. We tell the assembler that we are 
+    doing this by beginning with the assembler directive <TT>.method&nbsp; 
+    methodname(parms)returnValue</TT>.&nbsp; For example, to define <TT>int 
+    distSq(int x, int y)</TT>, the directive looks like <TT>.method public 
+    static distSq(II)I</TT>.&nbsp; We see that it has two integer parameteres 
+    and returns an integer.&nbsp; We use <TT>I</TT> for integers.&nbsp; (We can 
+    also have <TT>B</TT>yte, <TT>C</TT>haracter, <TT>D</TT>ouble, 
+    <TT>F</TT>loat, <TT>J</TT>-long (I have no idea), <TT>S</TT>hort,&nbsp; and 
+    <TT>Z</TT>-boolean (?).&nbsp; If a function does not return a value we would 
+    end the declaration with a <TT>V</TT>.&nbsp; This directive will create a 
+    description of this method in the constant pool. 
+    <LI>Next we have to tell the class file how much local storage and stack 
+    space the method will need by <BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<TT> 
+    .limit locals howManyLocals</TT> <BR><TT>&nbsp;&nbsp;&nbsp; .limit 
+    stack&nbsp; howBigTheStackWillGet</TT> <BR>You will have to calculate this 
+    yourself; if you miscalculate, most likely you will get a runtime error. 
+    (Jasmine has a default size of 1 for each limit, but it's wiser to be 
+    explicit.)&nbsp; After writing the code, I calculated that <TT>distSq</TT> 
+    should have <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; .limit locals 
+    2</TT> <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; .limit stack&nbsp; 
+    3</TT> <BR>&nbsp; 
+    <LI>You can now write the code for the function.&nbsp; For readability, I 
+    recommend 
+    <UL>
+      <LI>Clearly document the definition of the function as if you were writing 
+      it in Java.&nbsp; It's much harder figuring out what is happening if you 
+      don't. 
+      <LI>Describe the parameters (the first local variables)&nbsp; with the 
+      names of the parameters.&nbsp; No one is going to remember that local 
+      variable 0 is x. 
+      <LI>Define meaningful names for your local variables. 
+      <LI>When using local variables, don't change the context.&nbsp; If a local 
+      variable is used for x, don't decide that it can then be used for i.&nbsp; 
+      Define another local variable for i.&nbsp; Storage is pretty cheap these 
+      days. 
+      <LI>When manipulating the stack, describe what's happening.&nbsp; Your 
+      code should look something like <BR><TT>;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+      Calculate x*x + y*y</TT> 
+      <BR><TT>;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+      Stack</TT> <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+      iload_0&nbsp;&nbsp; ; x</TT> <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+      dup&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; x x</TT> 
+      <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+      imul&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; x*x</TT> 
+      <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; iload_1&nbsp;&nbsp; ; y 
+      x*x</TT> <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+      dup&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; y y x*x</TT> 
+      <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+      imul&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; y*y x*x</TT> 
+      <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+      iadd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; y*y + x*x</TT> 
+      <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ireturn</TT> <BR>Most people 
+      will read the comments rather than the code! </LI></UL>
+    <LI>End the method with an <TT>.end method </TT>directive. <BR>&nbsp; 
+  </LI></OL>
+  <LI><B>Loading large constants</B>.&nbsp; Just do <TT>ldc A_LARGE_CONSTANT. 
+  </TT>This tells the assembler to do do two things:&nbsp; (1) create a constant 
+  int the pool that contains this number; (2) generate the <TT>ldc</TT> 
+  instruction with the index to this constant.&nbsp; The assembler really does 
+  all the dirty work for you.&nbsp; In the method <TT>millionX(int x)</TT>which 
+  returns 1000000*x, I <TT>ldc&nbsp; 1000000</TT> to push 1000000 onto the 
+  stack. 
+  <LI><B>Calling a static method</B>.&nbsp; Use <TT>invokestatic 
+  path/Class/method(args)return_value</TT>.&nbsp; In <TT>int distSq(int x, int 
+  y, int z)</TT>, there is a call to <TT>distSq(x, y)</TT>.&nbsp; After pushing 
+  x and y onto the stack, we&nbsp; <TT>invokestatic 
+  SomeFunctions/distSq(II)I</TT>.&nbsp; Note that the assembler needs the name 
+  of the class for the method; it's not smart like the Java compiler. <BR>Most 
+  likely, you'll also need to include a path to the method.&nbsp; The method 
+  <TT>int dist(int x, int y)</TT>calls <TT>abs(n)</TT>.&nbsp; This function is 
+  defined in the package java.lang.Math. Thus, we <TT>invokestatic 
+  java/lang/Math/abs(I)I</TT>.&nbsp; The syntax of Jasmin requires that we 
+  replace the periods of Java by slashes. 
+  <P>After the name of the method, we must give the type of the paraemeters 
+  between the parentheses followed by the return type.&nbsp; This is the same as 
+  we did when we defined a method. </P>
+  <P>Can you guess how this instruction is generated?&nbsp; Remember, that it is 
+  the assembler that is creating those constants to name the function, the 
+  parameters, and the return type. <BR>&nbsp; </P>
+  <LI><B>Assembling and testing program</B>.&nbsp; After you have <A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/JasminSetup.html">set 
+  up</A> the environment, you assemble the code into the class files by the 
+  command <TT>jasmin ClassName.j</TT>.&nbsp; For the example, I did 
+  <BR><TT>D:\JAVA\JASMIN--&gt;jasmin SomeFunctions.j</TT> <BR><TT>Generated: 
+  SomeFunctions.class</TT> 
+  <P>The first time, most likely you'll get cryptic error messages.&nbsp; Look 
+  <B>closely</B> at the line causing the error.&nbsp; Did you misspell 
+  something?&nbsp; Did you leave out a semicolon or a period? </P>
+  <P>I recommend that you <TT>javap -c -verbose ClassName</TT> so that you are 
+  convinced that you have correctly created a class file. </P>
+  <P>You'll notice that my example has no <TT>main()</TT> method.&nbsp; Instead 
+  I write a <A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/TestFunctions.java">driver 
+  program</A> which will call the static methods and then display the 
+  results.&nbsp; (When we get to objects, you'll be able to do i/o easily in the 
+  assembler code.)&nbsp; For example, I can <BR><TT>&nbsp;&nbsp;&nbsp; 
+  System.out.println(SomeFunctions.distSq(3,4,10));</TT> <BR>Remember that you 
+  have to explicitly name the class that the contains the static function. </P>
+  <P>Compile the driver program and execute its class.&nbsp; If all goes well, 
+  you'll get what you are looking for.&nbsp; But, at first, you may get 
+  exceptions.&nbsp; Reasons can be </P>
+  <OL>
+    <LI>Your limits for the stack and local variables are not enough.&nbsp; You 
+    may get something like <TT>Exception in thread "main" java.lang.VerifyError: 
+    (class: SomeFunctions, method: distSq signature: (II)I) Stack size too large 
+    </TT>or <TT>Exception in thread "main" java.lang.ClassFormatError: 
+    SomeFunctions (Arguments can't fit into locals)</TT> (Do you see that the 
+    first is a verify error?&nbsp; Your program was checked for how much stack 
+    space it needed and was found lacking.&nbsp; In the second, the JVM realized 
+    when it tried to call your method that it did not have enough local 
+    variables.) 
+    <LI>You have a typo in the naming a class or a method that you call.&nbsp; 
+    Remember that the assembler is not smart; it does not check that methods 
+    exist in a class; it just assembles what it sees.&nbsp; For example, in 
+    <TT>int distSq(int x, int y, int z)</TT>, there is a call to <TT>distSq(x, 
+    y)</TT>.&nbsp; If I misspell the call as <TT>invokestatic 
+    SomeFunctions/dis<B>s</B>tSq(II)I</TT>, the code will compile.&nbsp; But 
+    when the java program is run, you'll see <TT>Exception in thread "main" 
+    java.lang.NoSuchMethodError at 
+    SomeFunctions.distSq(SomeFunctions.j)</TT>.&nbsp; Unfortunately, the JVM 
+    does not tell you what method it was looking for.&nbsp; Good hunting. 
+    <LI>You just get the wrong answer.&nbsp; This is where, in real 
+    architectures, you use a debugger so that you can execute one machine 
+    instruction at a time and examine the results.&nbsp; Although the SDK does 
+    include a debugger, it&nbsp; is targeted at Java code, not assembler code. 
+    It won't help you much. <BR>&nbsp;You need to walk through the calculation 
+    and examine the results.&nbsp; To help you, I have included in <A 
+    href="http://www.csam.montclair.edu/~bredlau/jasmin/SomeFunctions.j">SomeFunctions.j</A> 
+    the method <TT>void show(int x)</TT> which will print out the value of 
+    x.&nbsp; How can this be useful?&nbsp; As you go through a calculation you 
+    can <TT>dup</TT> the top of the stack and then <TT>invokestatic 
+    SomeFunctions/show(I)V</TT>.&nbsp; Do this in every step to verify that what 
+    you think is on the top of the stack is so.&nbsp; I do this in <TT>int 
+    distSq(int x, int y, int z)</TT>.&nbsp; When you are satisfied, comment out 
+    the code. </LI></OL>
+  <LI><B>Exercises</B> -- to be done </LI></OL>
+<HR width="100%">
+
+<P><A name="Flow of Control"></A><B><I><FONT size=+1>Flow of 
+Control</FONT></I></B> </P>
+<OL>
+  <LI>Now that you can assemble simple statements, let's put some logic into our 
+  programs so we can branch around them.&nbsp; Java has a separate type 
+  <TT>boolean</TT>; a <TT>boolean </TT>variable can have a value of either 
+  <TT>true</TT> or <TT>false</TT>.&nbsp; Note that the integer <TT>0</TT> is 
+  <B>not</B> the same as <TT>false. </TT>But in the JVM, booleans <B>are</B> 
+  represented by integers with 0 and 1 corresponding with false and true, 
+  respectively.&nbsp; Looking at <TT>ifManip()</TT>in <A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/Demo2.java">Demo2.java</A> 
+  and its&nbsp; <A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/Demo2.txt">disassembly</A> 
+  , we see that <BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<TT> boolean&nbsp; flag 
+  = false;</TT> 
+  <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  flag = true;</TT> <BR>compiles into&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <TT>0 
+  iconst_0&nbsp;&nbsp;&nbsp; ; false</TT> 
+  <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  1 istore_3</TT> 
+  <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  2 iconst_1&nbsp;&nbsp;&nbsp; ; true</TT> 
+  <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  3 istore_3</TT> <BR>&nbsp; 
+  <LI>How does the Java compiler implement an <TT>if </TT>statement such as 
+  <BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <TT>if (x &lt; 2) x = 0;</TT> 
+  <OL>
+    <LI>Push the two integers onto the stack that you want to compare: 
+    <BR>&nbsp; <TT>10 iload_0&nbsp;&nbsp;&nbsp; ; x</TT> <BR><TT>&nbsp;11 
+    iconst_2&nbsp;&nbsp; ; 2 x</TT> 
+    <LI>Compare them with one of the <TT>if_icmpXX</TT> branching instructions 
+    where <TT>XX</TT> can be <TT>eq</TT>, <TT>ne</TT>, <TT>lt</TT>, <TT>gt</TT>, 
+    <TT>le</TT>, <TT>ge:</TT> <BR><TT>&nbsp;12 if_icmpge 17</TT>&nbsp; The JVM 
+    pops the numbers off the stack and compares them.&nbsp; If <TT>x</TT> is 
+    greater than or equal to 2, then execution will continue at the instruction 
+    at location 17; otherwise execution continues at the next instruction 
+    at&nbsp; location 15. 
+    <P>Why is the test for "greater than or equal" rather than "less 
+    than"?.&nbsp; The compiler wants to preserve the program structure so that 
+    the code <TT>x = 0; </TT>should&nbsp; immediately follow the test.&nbsp; 
+    Thus, we want to branch around the code when <TT>x &gt;= 2</TT>. </P>
+    <P>The coding for <TT>if (x &lt; 2) x = 0; </TT>then looks like: </P>
+    <P><TT>&nbsp; 10 iload_0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; x</TT> 
+    <BR><TT>&nbsp; 11 iconst_2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; 2 x</TT> 
+    <BR><TT>&nbsp; 12 if_icmpge 17&nbsp;&nbsp; ;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+    if x ge 2, continue execution at 17</TT> <BR><TT>&nbsp; 15 
+    iconst_0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; 0</TT> <BR><TT>&nbsp; 16 
+    istore_0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+    x = 0</TT> <BR><TT>&nbsp; 17 ...</TT> <BR>&nbsp; </P>
+    <LI>If you look at the hexadecimal machine instruction for <TT>if_icmpge 
+    17</TT>, you'll see <TT>a20005. </TT>We know that <TT>a2</TT> will be the 
+    opcode for <TT>if_icmpge</TT>; but why <TT>0005</TT> instead of <TT>0011 
+    </TT>(which is 17 in hexadecimal)?&nbsp; Recall that to access constants, 
+    the instruction contained the index of the constant in the constant 
+    pool.&nbsp;&nbsp; So the instruction does not contain an index.&nbsp; (If it 
+    did, this would be called "direct addressing". ) <BR>&nbsp; 
+    <P> <BR>&nbsp; <BR>&nbsp; <BR>&nbsp; <BR>&nbsp; </P>
+    <P>Then what does it contain?&nbsp; What location is <TT>if_icmpge 
+    17</TT>?&nbsp; How far is that away from 17?&nbsp; <TT>0005 </TT>is the 
+    <I>offset</I> to the instruction. </P>
+    <P>Many CPU's have a special register call the PC (<I>Program Counter</I>) 
+    which contains the address of the currently executing instruction.&nbsp; 
+    (Other CPU's PC contains the address of the next instruction to 
+    execute.)&nbsp; The JVM's PC contains the location to the current 
+    instruction.&nbsp; Program excution can be thought of as </P>
+    <OL>loop forever { 
+      <OL>
+        <LI>fetch the instruction at the location in the PC 
+        <LI>decode the instruction 
+        <LI>execute the instruction 
+        <LI>increment the PC by the length of the instruction or by the offset 
+        if it is a branching instruction and the test is satisfied </LI></OL>} 
+    </OL></LI></OL></LI></OL>
+<OL start=3>
+  <OL>Thus, after the <TT>if_icmpge</TT> at 12 is executed, if <TT>x &gt;= 
+    2</TT> is true, the PC will contain 12 + 5 = 17.&nbsp; The instruction at 17 
+    will be executed next.&nbsp; If the test is false the PC will contain 12 + 3 
+    = 15, which is the next sequential instruction. 
+    <P>Summarizing,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; offset = (adresss of 
+    instruction to execute, called the <I>target address</I>) - PC. 
+    <BR>Or&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+    target address = PC + offset. </P>
+    <P>The offset is a 16 bit integer.&nbsp; What is the largest positive 
+    offset? <BR>What does a negative offset mean?&nbsp; What is the largest 
+    negative offset?&nbsp; What implications does this have for a size of 
+    method? <BR>What happens if a branching instruction contained an offset of 
+    0? <BR>&nbsp; <BR>&nbsp;</P></OL>
+  <LI>It seems that the above has avoided any discussion of booleans.&nbsp; 
+  Let's see how the compiler implements <BR>&nbsp;&nbsp;&nbsp; <TT>flag = (x 
+  &lt; y);</TT>: 
+  <P><TT>&nbsp; 17 iload_0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; x</TT> 
+  <BR><TT>&nbsp; 18 iload_1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; y x</TT> 
+  <BR><TT>&nbsp; 19 if_icmpge 26&nbsp;&nbsp; ; if x ge y continue at 26</TT> 
+  <BR><TT>&nbsp; 22 iconst_1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; else push 
+  true</TT> <BR><TT>&nbsp; 23 goto 27&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  ; continue at 27 -- this is the famous "go to"</TT> <BR><TT>&nbsp; 26 
+  iconst_0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; push false if x ge y.</TT> 
+  <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  ; In either case, the stack contains a boolean</TT> <BR><TT>&nbsp; 27 
+  istore_3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; flag = (x &lt; y)</TT> </P>
+  <P>We need the infamous <TT>goto </TT>instruction to skip around the code that 
+  pushes false onto the stack.&nbsp; Remember that the operand of the 
+  <TT>goto</TT>instruction will contain the offset 4.&nbsp; You'll see that, in 
+  most cases, branches will always be downards.&nbsp; The exception will be to 
+  return to the beginning of a loop. <BR>&nbsp; <BR>&nbsp; </P>
+  <LI>Note that there are two paths of execution to the instruction at 27.&nbsp; 
+  In either case the stack contains an&nbsp; integer (really, a boolean) at 
+  instruction 27.&nbsp; When the program is loaded,&nbsp; the verifier will 
+  check to see that, for every path to a particular instruction, the stack and 
+  local variables are equivalent.&nbsp;&nbsp; That is, if the stack contains 3 
+  integers along one path to an instruction, it must also contain 3 integers 
+  along the other path. <BR>&nbsp;&nbsp; <TT>Method void dumb()</TT> 
+  <BR><TT>&nbsp;&nbsp; 0 iconst_0</TT> <BR><TT>&nbsp;&nbsp; 1 iconst_1</TT> 
+  <BR><TT>&nbsp;&nbsp; 2 if_icmpge 6</TT> <BR><TT>&nbsp;&nbsp; 5 iconst_1</TT> 
+  <BR><TT>&nbsp;&nbsp; 6 return</TT> <BR>In this example, if the branch is 
+  taken, the stack will be empty at location 6.&nbsp; If it isn't, the stack 
+  will contain the constant.&nbsp; When the class is loaded, the message 
+  <BR><TT>Exception in thread "main" java.lang.VerifyError: (class: Boom, 
+  method: dumb signature: ()V) Inconsistent stack height 1 != 0</TT> is 
+  displayed. <BR>&nbsp; 
+  <LI>Let's look at the bytecodes for 
+  <BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <TT>if 
+  (!flag)</TT> <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y++;</TT> 
+  <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp; else</TT> 
+  <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; z--;</TT> 
+  <BR>&nbsp;&nbsp;&nbsp; <TT>28 iload_3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; 
+  flag</TT> <BR><TT>&nbsp; 29 ifne 38&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (flag) 
+  continue at 38</TT> <BR><TT>&nbsp; 32 iinc 1 1</TT> <BR><TT>&nbsp; 35 goto 
+  41</TT> <BR><TT>&nbsp; 38 iinc 2 -1</TT> <BR><TT>&nbsp; 41</TT> <BR>Note the 
+  instruction <TT>ifne </TT>needs only one operand on the stack; the other 
+  operand is always 0.&nbsp; In this case, if the data on the stack is not 0 
+  (i.e., true) then we continue execution at 41 where we decrement z.&nbsp; 
+  There are 6 <TT>ifXX </TT>instructions that compare the integer on the top of 
+  the stack with 0. 
+  <P>Look at the other examples. <BR>&nbsp; </P>
+  <LI><B>Coding in Jasmin</B>.&nbsp; Let's look at the sgn function, which 
+  computes the sign on an integer, in <A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/SomeFunctions.j">SomeFunctions.j</A>.&nbsp; 
+  Note that that a <I>label</I> (or <I>symbolic address</I>)&nbsp; follows 
+  <TT>ifle</TT> rather than a number.&nbsp; A label defines a location for an 
+  instruction.&nbsp; We specify a label with a name followed by a colon, and 
+  nothing else.&nbsp; The assembler keeps track of labels; for example 
+  <TT>pos</TT> corresponds with location 2, and <TT>zero</TT> corresponds with 
+  10.&nbsp; When the <TT>ifle </TT>is assembled, the assembler calculates the 
+  offset to be 10 - 2 = 8.&nbsp;&nbsp; If you didn't have labels you would have 
+  to calculate the offsets yourself.&nbsp; That can be very painful especially 
+  if you add or delete lines. <BR><TT>;&nbsp;&nbsp; public static int sgn(int 
+  x);</TT> <BR><TT>;&nbsp;&nbsp; returns 1, if x &gt; 0</TT> 
+  <BR><TT>;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0, if x 
+  = 0</TT> <BR><TT>;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -1, 
+  if x &lt; 0</TT> <BR><TT>.method public static sgn(I)I</TT> 
+  <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; .limit locals 1</TT> 
+  <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; .limit stack&nbsp; 3</TT> 
+  <P><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; Parameters:</TT> 
+  <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ;&nbsp;&nbsp;&nbsp; 0 - x</TT> 
+  </P>
+  <P><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; iload_0&nbsp;&nbsp; ; x</TT> 
+  <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  dup&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; x x&nbsp; keep x around for 2nd 
+  test</TT> <BR><TT>;&nbsp; Labels must be on separate lines</TT> 
+  <BR><TT>pos:</TT> <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ifle&nbsp; zero 
+  ; x&nbsp;&nbsp;&nbsp; is x &gt; 0?</TT> 
+  <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  pop&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  yes. remove x</TT> <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  iconst_1&nbsp;&nbsp; ; 1</TT> <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  goto&nbsp; endif</TT> <BR><TT>zero:</TT> 
+  <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ifne&nbsp; neg&nbsp; 
+  ;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; no.&nbsp; is x = 0?</TT> 
+  <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; iconst_0&nbsp;&nbsp; ; 
+  0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; yes</TT> 
+  <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; goto&nbsp; endif</TT> 
+  <BR><TT>neg:</TT> <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; iconst_m1&nbsp; 
+  ; -1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; no</TT> <BR><TT>endif:</TT> 
+  <BR><TT>;&nbsp; All paths here will have an integer on the stack</TT> 
+  <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ireturn</TT> <BR><TT>.end 
+  method</TT> </P>
+  <P>Note that the structure of the code closely follows the definition of the 
+  function; destroying structure destroys readability.&nbsp; Comments describe 
+  <I>why</I> an instruction is coded; they should not merely echo code.&nbsp; 
+  The comment at&nbsp; <TT>endif</TT> acknowledges that you are aware that all 
+  paths must lead to a equivalent structure of the stack (and perhaps the local 
+  variables). <BR>&nbsp; </P>
+  <LI><B>Codng of Loops</B>&nbsp; -- to be done. 
+  <LI><B>Exercises</B> -- to be done. </LI></OL>
+<HR width="100%">
+<A name=Arrays></A><B><I><FONT size=+1>Arrays</FONT></I></B> 
+<OL>
+  <LI>Up to this point, the JVM architecture shown is pretty standard.&nbsp; You 
+  could think of the local variables as registers inside the CPU or as local 
+  memory.&nbsp; The invokestatic instruction is similar as a typical call but 
+  with the name of the function used as the operand instead of the address of 
+  function (though we use the name in assembler code).&nbsp; Most architectures 
+  also have some stack structure for manipulating or saving data.&nbsp; The 
+  passing of parameters on the stack is quite common in other 
+  architectures.&nbsp; Most subroutines would copy the parameters to the 
+  registers or local storage.&nbsp; The comparison of data with a branch is also 
+  quite common. <BR>&nbsp; 
+  <LI>Java arrays are objects; they are not consecutive storage locations 
+  in&nbsp; memory.&nbsp; The JVM implements objects in a <I>heap</I>, which is 
+  memory that the JVM, not the programmer, manages.&nbsp; When the JVM creates 
+  an object with&nbsp; <TT>new</TT>, a <I>reference</I> to that object (you 
+  could think of it as an address) in the heap is returned.&nbsp; References are 
+  a datatype in the JVM; as such, they are treated much differently than 
+  integers.&nbsp;&nbsp; You'll see this easily, since there are separate 
+  instructions for arrays and objects.&nbsp; There is not much you can do with 
+  references; you can acess the data associated with the object; you can 
+  push/pop them; you can compare references with other references or with 
+  <TT>null</TT>.&nbsp; That's about it. Note that you can't do arithmetic on 
+  them. (Well, you could try.&nbsp; But the verifier won't let you!)&nbsp; This 
+  is one of the reasons that Java is a "safe" language; it's very much unlike 
+  C++ where you can do all kinds of bad things with pointers. <BR>&nbsp; 
+  <LI>While the JVM has special instructions to access arrays, the concepts 
+  involved are similar to other architecutures.&nbsp; In traditional 
+  architectures, a register would contain a reference (address) to the 
+  array.&nbsp; Another register would contain an offset to the value in the 
+  array.&nbsp; A load instruction would specify both registers as well as the 
+  receiving register, as in <TT>ld [r2,r3],r4</TT>.&nbsp; The element to be 
+  retrieved is at the address which is the sum of the reference and the 
+  offset.&nbsp; In the JVM, we push a reference to the array onto the stack, and 
+  then the <I>index </I>to the element .&nbsp; The <TT>iaload</TT> instruction 
+  pops off the index and the reference, fetches the integer from the array and 
+  puts it on the stack. 
+  <LI>In <A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/Demo3.java">Demo3.java</A> 
+  and its <A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/Demo3.txt">disassembly</A>, 
+  we see how this is done.&nbsp; To create an integer array with 3 integers, we 
+  push 3 onto the stack and then <TT>newarray int</TT>.&nbsp; The second byte of 
+  the instruction describe the type of array to be created; you can create all 
+  the usual types of numeric arrays.&nbsp; The JVM pops the 3 and creates an 
+  integer array in the heap with three elements initialized to 0.&nbsp; A 
+  refrence to the array is pushed onto the stackT.&nbsp; Then we 
+  <TT>astore_0</TT> it.&nbsp; Note that this instruction expects a reference 
+  to&nbsp; an object on the stack. <BR>&nbsp;&nbsp;<TT> ; int x[];</TT> 
+  <BR><TT>&nbsp; ;&nbsp; x = new int[3];</TT> <BR><TT>&nbsp;&nbsp; 0 
+  iconst_3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3</TT> <BR><TT>&nbsp;&nbsp; 1 
+  newarray int&nbsp;&nbsp; x</TT> <BR><TT>&nbsp;&nbsp; 3 astore_0&nbsp;&nbsp; ; 
+  stack now empty</TT> <BR>&nbsp; 
+  <LI>To save an integer in the array, we push the reference to the array by the 
+  <TT>aload_0</TT> instruction, the index of the array, then the value we want 
+  stored.&nbsp; We can then <TT>iastore</TT> it: <BR><TT>&nbsp; ;&nbsp; x[2] = 
+  4;</TT> <BR><TT>&nbsp;&nbsp; 4 aload_0&nbsp;&nbsp;&nbsp;&nbsp; ; x</TT> 
+  <BR><TT>&nbsp;&nbsp; 5 iconst_2&nbsp;&nbsp;&nbsp; ; 2 x</TT> 
+  <BR><TT>&nbsp;&nbsp; 6 iconst_4&nbsp;&nbsp;&nbsp; ; 4 2 x</TT> 
+  <BR><TT>&nbsp;&nbsp; 7 iastore&nbsp;&nbsp;&nbsp;&nbsp; ;</TT> <BR>&nbsp; 
+  <LI>Accessing an element is similar.&nbsp; The instruction <TT>iaload 
+  </TT>needs the reference and theindex on the stack. But notice how clever that 
+  comiler is: <BR><TT>&nbsp; ; x[0] = x[2];</TT> <BR><TT>&nbsp;&nbsp; 8 
+  aload_0&nbsp;&nbsp;&nbsp;&nbsp; ; x</TT> <BR><TT>&nbsp;&nbsp; 9 
+  iconst_0&nbsp;&nbsp;&nbsp; ; 0&nbsp; x&nbsp; for x[0]</TT> <BR><TT>&nbsp; 10 
+  aload_0&nbsp;&nbsp;&nbsp;&nbsp; ; x&nbsp; 0&nbsp; x</TT> <BR><TT>&nbsp; 11 
+  iconst_2&nbsp;&nbsp;&nbsp; ; 2&nbsp; x&nbsp; 0 x&nbsp; for x[2]</TT> 
+  <BR><TT>&nbsp; 12 iaload&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; x[2] 0 x</TT> 
+  <BR><TT>&nbsp; 13 iastore&nbsp;&nbsp;&nbsp;&nbsp; ;</TT> <BR>&nbsp; 
+  <LI>To obtain x.length, there is the special instruction <TT>arraylength</TT>: 
+  <BR><TT>&nbsp; ; len = x.length;</TT> <BR><TT>&nbsp; 14 
+  aload_0&nbsp;&nbsp;&nbsp;&nbsp; ; x</TT> <BR><TT>&nbsp; 15 arraylength ; 
+  x.length</TT> <BR><TT>&nbsp; 16 istore_2</TT> <BR>&nbsp; 
+  <LI>Recall that the statement <TT>y = x; </TT>means that y references the same 
+  array as x.&nbsp; Assignments of objects uses the <TT>aload</TT> and 
+  <TT>astore</TT> instructions: <BR><TT>&nbsp; 17 
+  aload_0&nbsp;&nbsp;&nbsp;&nbsp; ;x</TT> <BR><TT>&nbsp; 18 
+  astore_1&nbsp;&nbsp;&nbsp; ;&nbsp; y = x</TT> <BR>&nbsp; 
+  <LI>When testing for equality of objects, we must the instruction 
+  <TT>if_acmpne </TT>that compares&nbsp; objects. Note that <TT>null</TT> is its 
+  own constant: <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp; if ( y == x)</TT> 
+  <BR><TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y = null;</TT> 
+  <BR><TT>&nbsp; 19 aload_1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; 
+  y</TT> <BR><TT>&nbsp; 20 
+  aload_0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ; x y</TT> 
+  <BR><TT>&nbsp; 21 if_acmpne 26&nbsp;&nbsp;&nbsp; ;&nbsp;&nbsp;&nbsp; same 
+  object?</TT> <BR><TT>&nbsp; 24 aconst_null&nbsp;&nbsp;&nbsp;&nbsp; ; 
+  null&nbsp;&nbsp;&nbsp; This is not 0!</TT> <BR><TT>&nbsp; 25 
+  astore_1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ;&nbsp;&nbsp;&nbsp; 
+  yes.&nbsp; Then y = null</TT> </LI></OL>
+<OL start=3>
+  <LI><B>Coding in Jasmin</B>. You can model what the compiler does or you can 
+  roll your own.&nbsp; There is no additional syntax that you have to worry 
+  about.&nbsp; In <A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/MoreFunctions.j">MoreFunctions.j</A>, 
+  there are several examples.&nbsp; You should compare the code with the <A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/TestFunctions.txt">code</A> 
+  generated by <A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/TestFunctions.java">TestFunctions.java</A>.&nbsp; 
+  The <A 
+  href="http://www.csam.montclair.edu/~bredlau/jasmin/TestFunctions.output.txt">execution 
+  timings</A> comparing the implementations is quite interesting. 
+  <LI><B>Exercises</B> -- to be done. <BR>&nbsp; </LI></OL>
+<HR width="100%">
+
+<P><B><I><FONT size=+1>Odds and Ends</FONT></I></B> <BR>&nbsp; </P>
+<OL>
+  <LI>Cute instructions designed especially for Java: 
+  <UL>
+    <LI>jsr and ret 
+    <LI>dup_x, swap 
+    <LI>ifnull 
+    <LI>switch instructions </LI></UL>
+  <LI>Other numeric types; their arithmetic 
+  <UL>
+    <LI>short and byte become int 
+    <LI>long 
+    <LI>double 
+    <LI>conversions x2y, where x,y = b,c,d,f,i,d,l,s 
+    <LI>arrays </LI></UL>
+  <LI>Working with objects 
+  <UL>
+    <LI>accessing attributes 
+    <LI>calling methods 
+    <LI>arrays of objects </LI></UL>
+  <LI>Implementing 
+  <UL>
+    <LI>interface 
+    <LI>super() 
+    <LI>exceptions </LI></UL></LI></OL>
+<OL>
+  <OL> </OL></OL>
+<HR width="100%">
+<BR>© 2000 Carl. E. Bredlau 
+<P><I><A>bredlauc@mail.montclair.edu</A></I> <BR>&nbsp; </P></BODY></HTML>
