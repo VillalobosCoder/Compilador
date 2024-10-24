@@ -12,10 +12,11 @@ public class Parser {
   String[] tipo = null;
   String[] variable;
   String byteString;
+  @SuppressWarnings("rawtypes")
   private Vector tablaSimbolos = new Vector();
   private final Scanner s;
   final int ifx = 1, thenx = 2, elsex =
-    3, /* beginx = 4, *//* endx = 5 */printx = 6, semi = 7, sum = 8, igual =
+    3, printx = 6, semi = 7, sum = 8, igual =
     9, igualdad = 10, intx = 11, stringx = 12, id = 13, EOF_CODE = 14;
   private int tknCode, tokenEsperado;
   private String token, tokenActual, log;
@@ -24,11 +25,7 @@ public class Parser {
   private int cntBC = 0;
   private String bc;
   private int jmp1, jmp2, jmp3;
-  private int aux1, aux2, aux3;
   private String pilaBC[] = new String[100];
-  private String memoriaBC[] = new String[10];
-  private String pilaIns[] = new String[50];
-  private int retornos[] = new int[10];
   private int cntIns = 0;
 
   // ---------------------------------------------

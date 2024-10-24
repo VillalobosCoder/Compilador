@@ -31,14 +31,6 @@ public class Scanner {
         if (b) {
             k++;
         }
-        
-        /* 
-        if(b) {
-            token = tokens[k];
-            if(k < tokens.length-1) {
-            k++;
-            }
-        }*/
 
         for (String reservada : reservadas) {
             if (token.equalsIgnoreCase(reservada)) {

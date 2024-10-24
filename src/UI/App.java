@@ -28,7 +28,7 @@ public class App extends JFrame {
     }
 
     private void initUI() {
-        setTitle("Compilador [Alejandro Villalobos]");
+        setTitle("Compilador [VillalobosCoder]");
         setSize(800, 600);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -286,8 +286,6 @@ public class App extends JFrame {
                 } else if (declaracion.isToken()) {
                     symbolsTableModel.addRow(new Object[] { declaracion.getToken(), "" });
                 }
-            } else {
-                // Manejo de casos no esperados
             }
         }
     }

@@ -2,7 +2,6 @@ package ArbolSintactico;
 import java.util.Vector;
 
 public class Programax {
-    //private Declarax s1;
     private Vector s1;
     private Statx s2;
     

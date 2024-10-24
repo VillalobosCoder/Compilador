@@ -37,8 +37,6 @@ public class Declarax {
     public boolean isToken() {
         return token != null;
     }
-
-        // Implementación del método toTreeString
         public String toTreeString(int prof) {
             String indent = " ".repeat(prof * 2);
             if (isVariable()) {
